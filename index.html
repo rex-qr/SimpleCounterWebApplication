@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+
+        .counter-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .counter-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+            font-family: monospace;
+            min-width: 200px;
+            text-align: center;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .counter-display.editing {
+            outline: 2px solid #2196F3;
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .increment-decrement-group {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .increment {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .decrement {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .reset {
+            background-color: #2196F3;
+            color: white;
+            width: 100%;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .counter-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .counter-display {
+                font-size: 3rem;
+            }
+
+            .increment-decrement-group {
+                flex-direction: column;
+            }
+
+            .increment-decrement-group button {
+                width: 100%;
+            }
+
+            .reset {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="counter-container">
+        <div class="counter-display" id="counter" ondblclick="makeEditable()">0</div>
+        <div class="button-group">
+            <div class="increment-decrement-group">
+                <button class="decrement" onclick="decrement()">-</button>
+                <button class="increment" onclick="increment()">+</button>
+            </div>
+            <button class="reset" onclick="reset()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize counter to 0
+        let count = 0;
+        const MAX_VALUE = 999999; // Maximum supported value
+        updateDisplay();
+
+        function increment() {
+            if (count >= MAX_VALUE) {
+                count = 0;
+            } else {
+                count++;
+            }
+            updateDisplay();
+        }
+
+        function decrement() {
+            if (count > 0) {
+                count--;
+                updateDisplay();
+            }
+        }
+
+        function reset() {
+            count = 0;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('counter').textContent = count;
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            switch(event.key.toLowerCase()) {
+                case 'i':
+                    increment();
+                    break;
+                case 'd':
+                    decrement();
+                    break;
+                case 'r':
+                    reset();
+                    break;
+            }
+        });
+
+        function makeEditable() {
+            const counterDisplay = document.getElementById('counter');
+            counterDisplay.contentEditable = true;
+            counterDisplay.classList.add('editing');
+            counterDisplay.focus();
+            
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(counterDisplay);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Handle input validation
+            counterDisplay.addEventListener('input', function(e) {
+                const value = e.target.textContent;
+                // Remove non-digits and limit to 6 characters (999999)
+                e.target.textContent = value.replace(/[^\d]/g, '').slice(0, 6);
+                // Wrap around to 0 if the number is too large
+                if (parseInt(e.target.textContent) > MAX_VALUE) {
+                    e.target.textContent = '0';
+                }
+            });
+
+            // Handle when editing is done
+            counterDisplay.addEventListener('blur', function(e) {
+                const newValue = parseInt(e.target.textContent) || 0;
+                if (newValue >= 0) {
+                    count = newValue > MAX_VALUE ? 0 : newValue;
+                    updateDisplay();
+                } else {
+                    updateDisplay();
+                }
+                counterDisplay.contentEditable = false;
+                counterDisplay.classList.remove('editing');
+            });
+
+            // Handle Enter key
+            counterDisplay.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    counterDisplay.blur();
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
